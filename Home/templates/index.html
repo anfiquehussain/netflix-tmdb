@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie List</title>
+    <style>
+        /* Reset some default styles */
+        body, h1, h2, h3, p, ul, li, input, form {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Container for the movie items */
+        .movie-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px;
+        }
+
+        /* Individual movie card styling */
+        .movie-card {
+            width: 200px;
+            height: fit-content;
+            background-color: #f2f2f2;
+            margin: 10px;
+            text-align: center;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-card img {
+            max-width: 100%;
+            max-height: 60%;
+            object-fit: cover;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .movie-info {
+            padding: 10px;
+        }
+
+        .movie-title {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .watch-link {
+            color: #007bff;
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .watch-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Popup styling */
+        .popup-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            max-width: 90%;
+            max-height: 80%;
+            overflow: hidden;
+            position: relative;
+            background-color: #fff;
+            border-radius: 10px;
+        }
+
+        .popup-video {
+            width: 100%;
+            height: 100%;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #333;
+            font-size: 18px;
+        }
+
+        /* Search form styling */
+        .search-form {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .search-input {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .search-submit {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .search-submit:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-form">
+        <form action="{% url 'homepage' %}" method="GET">
+            <input class="search-input" id="query_name" type="text" name="query_name" placeholder="Search...">
+            <button class="search-submit" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="movie-container">
+        {% for movie in data %}
+        <div class="movie-card">
+            {% if movie.media_type == 'person' %}
+                {% if movie.profile_path %}
+                    <img src="{{ imageUrl }}{{ movie.profile_path }}" alt="{{ movie.name }} Image">
+                {% else %}
+                    <p>No image</p>
+                {% endif %}
+            {% else %}
+                <img src="{{ imageUrl }}{{ movie.poster_path }}" alt="{{ movie.title }} Poster">
+            {% endif %}
+            <div class="movie-info">
+                <h4 class="movie-title">
+                    {% if movie.media_type == 'movie' %}
+                        {{ movie.title }}
+                    {% elif movie.media_type == 'tv' %}
+                        {{ movie.name }}
+                    {% elif movie.media_type == 'person' %}
+                        {{ movie.name }}
+                    {% else %}
+                        Unknown Title
+                    {% endif %}
+                    ({{ movie.media_type }})
+                </h4>
+                <p>{{ movie.original_language }}</p>
+                {% if movie.videos %}
+                    <a class="watch-link" href="#" onclick="showVideoPopup('{{ movie.videos.0.key }}')">Watch</a>
+                {% else %}
+                    <p style="color: red;font-size: 10px;"><i><b>No videos available for this {{ movie.media_type }}.</b></i></p>
+                {% endif %}
+                <p>release_date:{{ movie.release_date }}</p>
+                <p>✬{{ movie.popularity }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Popup container -->
+    <div id="videoPopup" class="popup-container">
+        <div class="popup-content">
+            <div class="close-button" onclick="closeVideoPopup">&#10006;</div>
+            <iframe class="popup-video" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle pop-up -->
+    <script>
+        function showVideoPopup(videoKey) {
+            var videoUrl = "https://www.youtube.com/embed/" + videoKey;
+            document.querySelector('.popup-video').src = videoUrl;
+            document.getElementById('videoPopup').style.display = 'flex';
+        }
+
+        function closeVideoPopup() {
+            document.getElementById('videoPopup').style.display = 'none';
+            stopVideo();
+        }
+
+        function stopVideo() {
+            document.querySelector('.popup-video').src = '';
+        }
+
+        document.getElementById('videoPopup').addEventListener('click', function (event) {
+            if (event.target === this) {
+                closeVideoPopup();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
